@@ -1,3 +1,5 @@
+import { Workout } from '../entities/user.entity';
+
 export class UserResponseDto {
   id: string;
   name: string;
@@ -7,4 +9,7 @@ export class UserResponseDto {
   squat: number;
   bench: number;
   deadlift: number;
+  squatWorkouts: Workout[];
+  benchWorkouts: Workout[];
+  deadliftWorkouts: Workout[];
 }

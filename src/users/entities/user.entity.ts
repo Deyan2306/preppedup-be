@@ -1,3 +1,15 @@
+export class WorkoutSet {
+  weight: number;
+  reps: number;
+  targetRpe: number;
+  actualRpe: number;
+}
+
+export class Workout {
+  date: string;
+  sets: WorkoutSet[];
+}
+
 export class User {
   id: string;
   name: string;
@@ -8,4 +20,8 @@ export class User {
   squat: number;
   bench: number;
   deadlift: number;
+
+  squatWorkouts: Workout[];
+  benchWorkouts: Workout[];
+  deadliftWorkouts: Workout[];
 }

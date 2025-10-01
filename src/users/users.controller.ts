@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { AddWorkoutDto } from './dto/add-workout.dto';
 
 @Controller('users')
 export class UsersController {
@@ -26,8 +27,16 @@ export class UsersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    const user = this.usersService.findOne(id);
-    if (!user) throw new NotFoundException('User not found');
-    return user;
+    return this.usersService.findOne(id);
+  }
+
+  @Post(':id/workouts/:exercise')
+  addWorkout(
+    @Param('id') id: string,
+    @Param('exercise') exercise: 'squat' | 'bench' | 'deadlift',
+    @Body() workoutDto: AddWorkoutDto,
+  ) {
+    this.usersService.addWorkout(id, exercise, workoutDto);
+    return { message: 'Workout added successfully' };
   }
 }
