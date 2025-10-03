@@ -12,6 +12,7 @@ export class Workout {
 
 export class User {
   id: string;
+  username: string;
   name: string;
   surname: string;
   email: string;
@@ -20,6 +21,8 @@ export class User {
   squat: number;
   bench: number;
   deadlift: number;
+
+  membershipPlan: 'basic' | 'pro' | 'max';
 
   squatWorkouts: Workout[];
   benchWorkouts: Workout[];

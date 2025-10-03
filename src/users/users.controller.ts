@@ -5,13 +5,15 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AddWorkoutDto } from './dto/add-workout.dto';
+import { UpdateSbdDto } from './dto/update-sbd.dto';
 
-@Controller('users')
+@Controller('api/v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -38,5 +40,10 @@ export class UsersController {
   ) {
     this.usersService.addWorkout(id, exercise, workoutDto);
     return { message: 'Workout added successfully' };
+  }
+
+  @Patch(':id/sbd')
+  updateSbd(@Param('id') id: string, @Body() sbdDto: UpdateSbdDto) {
+    return this.usersService.updateSbd(id, sbdDto);
   }
 }

@@ -1,4 +1,4 @@
-import { IsArray, IsNumber, IsString, Min } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class WorkoutSetDto {
   @IsNumber() @Min(0) weight: number;
@@ -8,5 +8,6 @@ export class WorkoutSetDto {
 }
 
 export class AddWorkoutDto {
+  @IsOptional() date?: string;
   @IsArray() sets: WorkoutSetDto[];
 }

@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
 import { UserResponseDto } from './dto/user-response.dto';
 import { AddWorkoutDto } from './dto/add-workout.dto';
+import { UpdateSbdDto } from './dto/update-sbd.dto';
 
 @Injectable()
 export class UsersService {
@@ -35,6 +36,18 @@ export class UsersService {
   findOne(id: string): UserResponseDto {
     const user = this.users.find((u) => u.id === id);
     if (!user) throw new NotFoundException('User not found');
+    const { password, ...rest } = user;
+    return rest;
+  }
+
+  updateSbd(userId: string, sbdDto: UpdateSbdDto): UserResponseDto {
+    const user = this.users.find((u) => u.id === userId);
+    if (!user) throw new NotFoundException('User not found');
+
+    user.squat = sbdDto.squat;
+    user.bench = sbdDto.bench;
+    user.deadlift = sbdDto.deadlift;
+
     const { password, ...rest } = user;
     return rest;
   }
