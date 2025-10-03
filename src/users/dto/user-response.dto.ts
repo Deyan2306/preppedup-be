@@ -10,6 +10,7 @@ export class UserResponseDto {
   squat: number;
   bench: number;
   deadlift: number;
+  membershipPlan: 'basic' | 'pro' | 'max';
   squatWorkouts: Workout[];
   benchWorkouts: Workout[];
   deadliftWorkouts: Workout[];

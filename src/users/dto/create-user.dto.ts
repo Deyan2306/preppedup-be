@@ -1,7 +1,8 @@
 import {
   IsEmail,
-  isNotEmpty,
+  IsIn,
   IsNotEmpty,
+  IsOptional,
   IsNumber,
   Min,
 } from 'class-validator';
@@ -16,4 +17,8 @@ export class CreateUserDto {
   @IsNumber() @Min(0) squat: number;
   @IsNumber() @Min(0) bench: number;
   @IsNumber() @Min(0) deadlift: number;
+
+  @IsOptional()
+  @IsIn(['basic', 'pro', 'max'])
+  membershipPlan?: 'basic' | 'pro' | 'max';
 }
