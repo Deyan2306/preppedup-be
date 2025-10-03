@@ -4,7 +4,6 @@ import {
   Get,
   NotFoundException,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -19,31 +18,31 @@ export class UsersController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    return await this.usersService.create(createUserDto);
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    return await this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.usersService.findOne(id);
   }
 
   @Post(':id/workouts/:exercise')
-  addWorkout(
+  async addWorkout(
     @Param('id') id: string,
     @Param('exercise') exercise: 'squat' | 'bench' | 'deadlift',
     @Body() workoutDto: AddWorkoutDto,
   ) {
-    this.usersService.addWorkout(id, exercise, workoutDto);
-    return { message: 'Workout added successfully' };
+    // this method returns a simple message
+    return await this.usersService.addWorkout(id, exercise, workoutDto);
   }
 
   @Patch(':id/sbd')
-  updateSbd(@Param('id') id: string, @Body() sbdDto: UpdateSbdDto) {
-    return this.usersService.updateSbd(id, sbdDto);
+  async updateSbd(@Param('id') id: string, @Body() sbdDto: UpdateSbdDto) {
+    return await this.usersService.updateSbd(id, sbdDto);
   }
 }
