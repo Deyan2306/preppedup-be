@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DRIZZLE } from 'src/db/drizzle.module';
 import * as schema from 'src/db/schema/schema';
@@ -54,16 +49,6 @@ export class UsersService {
     });
 
     return this.findOne(userId);
-  }
-
-  async validateUser(email: string, password: string) {
-    const [user] = await this.db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.email, email));
-    if (!user) return null;
-    const isValid = await bcrypt.compare(password, user.password);
-    return isValid ? user : null;
   }
 
   async findAll(): Promise<UserResponseDto[]> {
@@ -141,6 +126,7 @@ export class UsersService {
       .select()
       .from(schema.workouts)
       .where(eq(schema.workouts.userId, userId));
+
     const squatWorkouts: Workout[] = [];
     const benchWorkouts: Workout[] = [];
     const deadliftWorkouts: Workout[] = [];

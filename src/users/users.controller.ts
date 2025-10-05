@@ -4,22 +4,19 @@ import {
   Get,
   Patch,
   Post,
-  Param,
-  UnauthorizedException,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AddWorkoutDto } from './dto/add-workout.dto';
 import { UpdateSbdDto } from './dto/update-sbd.dto';
-import { AllowAnonymous, Session } from '@thallesp/nestjs-better-auth';
-import type { UserSession } from '@thallesp/nestjs-better-auth';
-import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt.guard';
+import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
 
 @Controller('api/v1/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  // -------------------- AUTH --------------------
 
   @AllowAnonymous()
   @Post('register')
@@ -27,61 +24,30 @@ export class UsersController {
     return this.usersService.create(userDto);
   }
 
-  @AllowAnonymous()
-  @Post('login')
-  async login(@Body() dto: LoginDto, @Session() session: any) {
-    const user = await this.usersService.validateUser(dto.email, dto.password);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
-
-    // Store userId in the session
-    session.userId = user.id;
-
-    return { message: 'Logged in successfully', userId: user.id };
-  }
-
-  @Post('logout')
-  async logout(@Session() session: any) {
-    // Clear userId from session
-    session.userId = null;
-
-    return { message: 'Logged out successfully' };
-  }
-
-  // -------------------- USER PROFILE --------------------
-
+  @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@Session() session: any) {
-    const userId = session.userId;
-    if (!userId) throw new UnauthorizedException('Not logged in');
-
+  async getProfile(@Request() req) {
+    const userId = req.user.sub;
     return this.usersService.findOne(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('workouts/:exercise')
+  async addWorkout(@Request() req, @Body() workoutDto: AddWorkoutDto) {
+    const userId = req.user.sub;
+    const exercise = req.params.exercise as 'squat' | 'bench' | 'deadlift';
+    return this.usersService.addWorkout(userId, exercise, workoutDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('sbd')
+  async updateSbd(@Request() req, @Body() sbdDto: UpdateSbdDto) {
+    const userId = req.user.sub;
+    return this.usersService.updateSbd(userId, sbdDto);
   }
 
   @Get()
   async findAll() {
     return this.usersService.findAll();
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
-  }
-
-  // -------------------- WORKOUTS --------------------
-
-  @Post(':id/workouts/:exercise')
-  async addWorkout(
-    @Param('id') id: string,
-    @Param('exercise') exercise: 'squat' | 'bench' | 'deadlift',
-    @Body() workoutDto: AddWorkoutDto,
-  ) {
-    return this.usersService.addWorkout(id, exercise, workoutDto);
-  }
-
-  // -------------------- SBD --------------------
-
-  @Patch(':id/sbd')
-  async updateSbd(@Param('id') id: string, @Body() sbdDto: UpdateSbdDto) {
-    return this.usersService.updateSbd(id, sbdDto);
   }
 }
