@@ -4,15 +4,14 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
 import { DrizzleModule } from './db/drizzle.module';
-import { AuthModule } from '@thallesp/nestjs-better-auth';
-import { auth } from './auth';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    AuthModule.forRoot({ auth }),
     ConfigModule.forRoot({ isGlobal: true }),
     DrizzleModule,
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

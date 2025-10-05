@@ -1,7 +1,11 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { Workout } from './entities/user.entity';
-import { DRIZZLE } from 'src/db/drizzle.module';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { DRIZZLE } from 'src/db/drizzle.module';
 import * as schema from 'src/db/schema/schema';
 import * as bcrypt from 'bcrypt';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,7 +14,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { eq } from 'drizzle-orm';
 import { UpdateSbdDto } from './dto/update-sbd.dto';
 import { AddWorkoutDto } from './dto/add-workout.dto';
-import { users, workouts, workoutSets } from 'src/db/schema/schema';
+import { Workout } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -18,12 +22,16 @@ export class UsersService {
     @Inject(DRIZZLE) private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  private async mapUserToResponse(user: any): Promise<UserResponseDto> {
+  private mapUserToResponse(
+    user: any,
+    workoutsData?: { [key: string]: Workout[] },
+  ): UserResponseDto {
     const { password, ...rest } = user;
-    const workoutsData = await this.getUserWorkouts(rest.id);
     return {
       ...rest,
-      ...workoutsData,
+      squatWorkouts: workoutsData?.squat || [],
+      benchWorkouts: workoutsData?.bench || [],
+      deadliftWorkouts: workoutsData?.deadlift || [],
     };
   }
 
@@ -31,7 +39,7 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(userDto.password, 10);
     const userId = uuidv4();
 
-    await this.db.insert(users).values({
+    await this.db.insert(schema.users).values({
       id: userId,
       username: userDto.username,
       name: userDto.name,
@@ -48,38 +56,54 @@ export class UsersService {
     return this.findOne(userId);
   }
 
+  async validateUser(email: string, password: string) {
+    const [user] = await this.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.email, email));
+    if (!user) return null;
+    const isValid = await bcrypt.compare(password, user.password);
+    return isValid ? user : null;
+  }
+
   async findAll(): Promise<UserResponseDto[]> {
-    const allUsers = await this.db.select().from(users);
-    return Promise.all(allUsers.map((u) => this.mapUserToResponse(u)));
+    const allUsers = await this.db.select().from(schema.users);
+    const result: UserResponseDto[] = [];
+    for (const u of allUsers) {
+      const workouts = await this.getUserWorkouts(u.id);
+      result.push(this.mapUserToResponse(u, workouts));
+    }
+    return result;
   }
 
   async findOne(id: string): Promise<UserResponseDto> {
-    const [user] = await this.db.select().from(users).where(eq(users.id, id));
-
+    const [user] = await this.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, id));
     if (!user) throw new NotFoundException('User not found');
-
-    return this.mapUserToResponse(user);
+    const workouts = await this.getUserWorkouts(id);
+    return this.mapUserToResponse(user, workouts);
   }
 
   async updateSbd(
     userId: string,
     sbdDto: UpdateSbdDto,
   ): Promise<UserResponseDto> {
-    const [existing] = await this.db
+    const [user] = await this.db
       .select()
-      .from(users)
-      .where(eq(users.id, userId));
-
-    if (!existing) throw new NotFoundException('User not found');
+      .from(schema.users)
+      .where(eq(schema.users.id, userId));
+    if (!user) throw new NotFoundException('User not found');
 
     await this.db
-      .update(users)
+      .update(schema.users)
       .set({
         squat: sbdDto.squat,
         bench: sbdDto.bench,
         deadlift: sbdDto.deadlift,
       })
-      .where(eq(users.id, userId));
+      .where(eq(schema.users.id, userId));
 
     return this.findOne(userId);
   }
@@ -91,7 +115,7 @@ export class UsersService {
   ) {
     const workoutId = uuidv4();
 
-    await this.db.insert(workouts).values({
+    await this.db.insert(schema.workouts).values({
       id: workoutId,
       userId,
       exercise,
@@ -99,7 +123,7 @@ export class UsersService {
     });
 
     for (const set of workoutDto.sets) {
-      await this.db.insert(workoutSets).values({
+      await this.db.insert(schema.workoutSets).values({
         id: uuidv4(),
         workoutId,
         weight: set.weight,
@@ -115,9 +139,8 @@ export class UsersService {
   private async getUserWorkouts(userId: string) {
     const userWorkouts = await this.db
       .select()
-      .from(workouts)
-      .where(eq(workouts.userId, userId));
-
+      .from(schema.workouts)
+      .where(eq(schema.workouts.userId, userId));
     const squatWorkouts: Workout[] = [];
     const benchWorkouts: Workout[] = [];
     const deadliftWorkouts: Workout[] = [];
@@ -125,24 +148,18 @@ export class UsersService {
     for (const w of userWorkouts) {
       const sets = await this.db
         .select()
-        .from(workoutSets)
-        .where(eq(workoutSets.workoutId, w.id));
-
+        .from(schema.workoutSets)
+        .where(eq(schema.workoutSets.workoutId, w.id));
       const workout: Workout = { date: w.date.toISOString(), sets };
-
-      switch (w.exercise) {
-        case 'squat':
-          squatWorkouts.push(workout);
-          break;
-        case 'bench':
-          benchWorkouts.push(workout);
-          break;
-        case 'deadlift':
-          deadliftWorkouts.push(workout);
-          break;
-      }
+      if (w.exercise === 'squat') squatWorkouts.push(workout);
+      if (w.exercise === 'bench') benchWorkouts.push(workout);
+      if (w.exercise === 'deadlift') deadliftWorkouts.push(workout);
     }
 
-    return { squatWorkouts, benchWorkouts, deadliftWorkouts };
+    return {
+      squat: squatWorkouts,
+      bench: benchWorkouts,
+      deadlift: deadliftWorkouts,
+    };
   }
 }
