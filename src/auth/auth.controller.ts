@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthPayloadDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
-import { AllowAnonymous } from '@thallesp/nestjs-better-auth';
+import { AllowAnonymous, AuthGuard } from '@thallesp/nestjs-better-auth';
+import { LocalAuthGuard } from './guards/localauth.guard';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -9,7 +10,11 @@ export class AuthController {
 
   @AllowAnonymous()
   @Post('login')
+  @UseGuards(LocalAuthGuard)
   async login(@Body() authPayload: AuthPayloadDto) {
     return this.authService.validateUser(authPayload);
   }
+
+  @Get('status')
+  status(@Req() req: Request) {}
 }
