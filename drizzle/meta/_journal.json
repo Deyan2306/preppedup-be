@@ -8,6 +8,13 @@
       "when": 1759497536264,
       "tag": "0000_amused_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1759656791723,
+      "tag": "0001_kind_silvermane",
+      "breakpoints": true
     }
   ]
 }
