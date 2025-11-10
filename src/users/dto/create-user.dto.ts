@@ -3,23 +3,57 @@ import {
   IsEmail,
   IsIn,
   IsNotEmpty,
-  IsOptional,
   IsNumber,
+  IsOptional,
   Min,
 } from 'class-validator';
 
 export class CreateUserDto {
-  @ApiProperty() @IsNotEmpty() username: string;
-  @ApiProperty() @IsNotEmpty() name: string;
-  @ApiProperty() @IsNotEmpty() surname: string;
-  @ApiProperty() @IsEmail() email: string;
-  @ApiProperty() @IsNotEmpty() password: string;
-  @ApiProperty() @IsNotEmpty() nationality: string;
-  @ApiProperty() @IsNumber() @Min(0) squat: number;
-  @ApiProperty() @IsNumber() @Min(0) bench: number;
-  @ApiProperty() @IsNumber() @Min(0) deadlift: number;
+  @ApiProperty({ example: 'ironwolf' })
+  @IsNotEmpty()
+  username: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'ironwolf@example.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ example: 'supersecure123' })
+  @IsNotEmpty()
+  password: string;
+
+  @ApiProperty({ example: 'Bulgaria' })
+  @IsNotEmpty()
+  nationality: string;
+
+  @ApiProperty({ example: 'male', enum: ['male', 'female'] })
+  @IsIn(['male', 'female'])
+  gender: 'male' | 'female';
+
+  @ApiProperty({ example: 82 })
+  @IsNumber()
+  @Min(0)
+  bodyWeight: number;
+
+  @ApiProperty({ example: 160 })
+  @IsNumber()
+  @Min(0)
+  squat: number;
+
+  @ApiProperty({ example: 105 })
+  @IsNumber()
+  @Min(0)
+  bench: number;
+
+  @ApiProperty({ example: 190 })
+  @IsNumber()
+  @Min(0)
+  deadlift: number;
+
+  @ApiProperty({
+    example: 'basic',
+    enum: ['basic', 'pro', 'max'],
+    required: false,
+  })
   @IsOptional()
   @IsIn(['basic', 'pro', 'max'])
   membershipPlan?: 'basic' | 'pro' | 'max';

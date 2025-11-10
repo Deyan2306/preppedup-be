@@ -37,11 +37,11 @@ export class UsersService {
     await this.db.insert(schema.users).values({
       id: userId,
       username: userDto.username,
-      name: userDto.name,
-      surname: userDto.surname,
       email: userDto.email,
       password: hashedPassword,
       nationality: userDto.nationality,
+      gender: userDto.gender,
+      bodyWeight: userDto.bodyWeight,
       squat: userDto.squat,
       bench: userDto.bench,
       deadlift: userDto.deadlift,

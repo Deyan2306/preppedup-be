@@ -15,6 +15,13 @@
       "when": 1759656791723,
       "tag": "0001_kind_silvermane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1759865648934,
+      "tag": "0002_shiny_randall_flagg",
+      "breakpoints": true
     }
   ]
 }
